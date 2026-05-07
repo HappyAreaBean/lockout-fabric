@@ -46,6 +46,15 @@ public class LockoutTeamServer extends LockoutTeam {
         }
     }
 
+    public void sendMessage(Component message) {
+        for (UUID uuid : getPlayerIds()) {
+            ServerPlayer player = server.getPlayerList().getPlayer(uuid);
+            if (player != null) {
+                player.sendSystemMessage(message);
+            }
+        }
+    }
+
     public void sendTooltipUpdate(Goal goal) {
         sendTooltipUpdate(goal, true);
     }

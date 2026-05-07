@@ -11,9 +11,9 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
@@ -179,17 +179,23 @@ public class Utility {
     }
 
     public static void drawGoalInformation(GuiGraphicsExtractor context, Font textRenderer, Goal goal, int mouseX, int mouseY) {
-        List<FormattedCharSequence> tooltip = new ArrayList<>();
-        tooltip.add(Component.nullToEmpty(((goal instanceof HasTooltipInfo) ? ChatFormatting.UNDERLINE : "") + goal.getGoalName()).getVisualOrderText());
+        List<Component> tooltip = new ArrayList<>();
+        MutableComponent translate = LockoutTranslation.getTranslationFromGoal(goal);
+
+        if (goal instanceof HasTooltipInfo) {
+            translate.withStyle(ChatFormatting.UNDERLINE);
+        }
+
+        tooltip.add(translate);
         if (goal instanceof HasTooltipInfo) {
             String s = LockoutClient.goalTooltipMap.get(goal.getId());
             if (s != null) {
                 for (String t : s.split("\n")) {
-                    tooltip.add(Component.nullToEmpty(t).getVisualOrderText());
+                    tooltip.add(Component.nullToEmpty(t));
                 }
             }
         }
-        context.setTooltipForNextFrame(textRenderer, tooltip, mouseX, mouseY);
+        context.setComponentTooltipForNextFrame(textRenderer, tooltip, mouseX, mouseY);
     }
 
     /**

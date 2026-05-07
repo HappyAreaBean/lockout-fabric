@@ -1,6 +1,7 @@
 package me.marin.lockout.client.gui;
 
 import me.marin.lockout.Lockout;
+import me.marin.lockout.LockoutTranslation;
 import me.marin.lockout.Utility;
 import me.marin.lockout.client.LockoutClient;
 import me.marin.lockout.generator.GoalDataGenerator;
@@ -35,6 +36,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static me.marin.lockout.Constants.*;
+import static me.marin.lockout.LockoutTranslation.KeyType.BUILDER;
+import static me.marin.lockout.LockoutTranslation.KeyType.MISC;
 
 public class BoardBuilderScreen extends Screen {
 
@@ -78,17 +81,17 @@ public class BoardBuilderScreen extends Screen {
 
         final int BOTTOM_BUTTONS_Y = height - 30;
 
-        saveButton = Button.builder(Component.nullToEmpty("Save Board"), (b) -> {
+        saveButton = Button.builder(LockoutTranslation.translatable(MISC, "save", "Save"), (b) -> {
             saveGoals(10, height - 45);
         }).width(85).pos(10, BOTTOM_BUTTONS_Y).build();
         this.addRenderableWidget(saveButton);
 
-        closeButton = Button.builder(Component.nullToEmpty("Close"), (b) -> {
+        closeButton = Button.builder(LockoutTranslation.translatable(MISC, "close", "Close"), (b) -> {
             onClose();
         }).width(50).pos(width - 50 - 10, BOTTOM_BUTTONS_Y).build();
         this.addRenderableWidget(closeButton);
 
-        clearBoardButton = Button.builder(Component.nullToEmpty("Clear Board"), (b) -> {
+        clearBoardButton = Button.builder(LockoutTranslation.translatable(BUILDER, "clear_board", "Clear Board"), (b) -> {
             BoardBuilderData.INSTANCE.clear();
             closeEditData();
             closeSearch();
@@ -166,7 +169,7 @@ public class BoardBuilderScreen extends Screen {
             this.addRenderableWidget(closeEditDataButton);
 
             int errorY = y + 25;
-            saveDataButton = Button.builder(Component.nullToEmpty("Save"), (b) -> {
+            saveDataButton = Button.builder(LockoutTranslation.translatable(BUILDER, "save", "Save"), (b) -> {
                 StringBuilder sb = new StringBuilder();
                 boolean isOk = true;
                 String wrongDataGenerator = null;
@@ -272,9 +275,9 @@ public class BoardBuilderScreen extends Screen {
 
         drawCenterBoard(context, mouseX, mouseY);
 
-        titleTextField.setSuggestion(titleTextField.getValue().isEmpty() ? "Board Name" : null);
+        titleTextField.setHint(titleTextField.getValue().isEmpty() ? LockoutTranslation.translatable(BUILDER, "board_name", "Board Name") : null);
         if (displaySearch) {
-            searchTextField.setSuggestion(searchTextField.getValue().isEmpty() ? "Search goals.." : null);
+            searchTextField.setHint(titleTextField.getValue().isEmpty() ? LockoutTranslation.translatable(BUILDER, "search_goals", "Search goals...") : null);
         }
     }
 

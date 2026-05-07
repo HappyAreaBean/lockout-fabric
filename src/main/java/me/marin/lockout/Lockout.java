@@ -4,17 +4,24 @@ import lombok.Getter;
 import lombok.Setter;
 import me.marin.lockout.client.LockoutBoard;
 import me.marin.lockout.lockout.Goal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostAdvancementsGoal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostDiamondBlocksGoal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostHoppersGoal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostLeaflitterGoal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostPlayerKillsGoal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostUniqueCraftsGoal;
+import me.marin.lockout.lockout.goals.have_more.HaveMostXPLevelsGoal;
+import me.marin.lockout.lockout.interfaces.HasTooltipInfo;
 import me.marin.lockout.network.CompleteTaskPayload;
 import me.marin.lockout.network.EndLockoutPayload;
 import me.marin.lockout.network.LockoutGoalsTeamsPayload;
 import me.marin.lockout.network.UpdateTimerPayload;
-import me.marin.lockout.lockout.goals.have_more.*;
-import me.marin.lockout.lockout.interfaces.HasTooltipInfo;
 import me.marin.lockout.network.UpdateTooltipPayload;
 import me.marin.lockout.server.LockoutServer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -26,7 +33,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import oshi.util.tuples.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
 
 public class Lockout {
 
@@ -138,16 +156,32 @@ public class Lockout {
         if (team == null) return;
 
         if (team instanceof LockoutTeamServer teamServer) {
-            completeGoal(goal, teamServer, teamServer.getPlayerName(playerId) + " completed " + goal.getGoalName() + ".");
+            var player = teamServer.getPlayerName(playerId);
+            completeGoal(goal, teamServer, LockoutTranslation.translatable(LockoutTranslation.KeyType.GOAL,
+                    "completed",
+                    player + " completed " + goal.getGoalName() + ".",
+                    player,
+                    LockoutTranslation.getTranslationFromGoal(goal)
+            ));
         } else {
             // Client side or other team type - should normally not happen on client but let's be safe
-            completeGoal(goal, team, "Someone completed " + goal.getGoalName() + ".");
+            completeGoal(goal, team, LockoutTranslation.translatable(LockoutTranslation.KeyType.GOAL,
+                    "completed",
+                    "Someone completed " + goal.getGoalName() + ".",
+                    LockoutTranslation.getTranslationFromGoal(goal)
+            ));
         }
     }
     public void completeGoal(Goal goal, LockoutTeam team) {
-        completeGoal(goal, team, team.getDisplayName() + " completed " + goal.getGoalName() + ".");
+        var player = team.getDisplayName();
+        completeGoal(goal, team, LockoutTranslation.translatable(LockoutTranslation.KeyType.GOAL,
+                "completed",
+                player + " completed " + goal.getGoalName() + ".",
+                player,
+                LockoutTranslation.getTranslationFromGoal(goal)
+        ));
     }
-    public void completeGoal(Goal goal, LockoutTeam team, String message) {
+    public void completeGoal(Goal goal, LockoutTeam team, MutableComponent message) {
         if (goal.isCompleted()) return;
         if (!hasStarted()) return;
 
@@ -157,13 +191,13 @@ public class Lockout {
         for (LockoutTeam lockoutTeam : teams) {
             if (!(lockoutTeam instanceof LockoutTeamServer lockoutTeamServer)) continue;
             if (Objects.equals(lockoutTeamServer, team)) {
-                lockoutTeamServer.sendMessage(ChatFormatting.GREEN + message);
+                lockoutTeamServer.sendMessage(message.copy().withColor(ChatFormatting.GREEN.getColor()));
             } else {
-                lockoutTeamServer.sendMessage(ChatFormatting.RED + message);
+                lockoutTeamServer.sendMessage(message.copy().withColor(ChatFormatting.RED.getColor()));
             }
         }
         for (ServerPlayer spectator : Utility.getSpectators(this, LockoutServer.server)) {
-            spectator.sendSystemMessage(Component.literal(message));
+            spectator.sendSystemMessage(message);
         }
 
         sendGoalCompletedPacket(goal, team);
@@ -325,7 +359,9 @@ public class Lockout {
 
         List<LockoutTeam> winners = new ArrayList<>();
         if (isWinner(team)) {
-            playerManager.broadcastSystemMessage(Component.literal(team.getDisplayName() + " wins."), false);
+            playerManager.broadcastSystemMessage(LockoutTranslation.translatable(LockoutTranslation.KeyType.MISC, "wins",
+                    team.getDisplayName() + " wins.",
+                    team.getDisplayName()), false);
             winners.add(team);
             setRunning(false);
         } else {

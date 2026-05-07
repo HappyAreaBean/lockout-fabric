@@ -1,5 +1,6 @@
 package me.marin.lockout.client.gui;
 
+import me.marin.lockout.LockoutTranslation;
 import me.marin.lockout.generator.GoalDataGenerator;
 import me.marin.lockout.lockout.Goal;
 import me.marin.lockout.lockout.GoalRegistry;
@@ -105,7 +106,7 @@ public class BoardBuilderSearchWidget extends AbstractScrollArea {
 
     public void searchUpdated(String search) {
         setScrollAmount(0);
-        visibleGoals = new ArrayList<>(registeredGoals.values()).stream().filter(goalEntry -> goalEntry.displayName.toLowerCase().contains(search.toLowerCase())).collect(Collectors.toList());
+        visibleGoals = new ArrayList<>(registeredGoals.values()).stream().filter(goalEntry -> goalEntry.goal.getGoalName().toLowerCase().contains(search.toLowerCase())).collect(Collectors.toList());
     }
 
     @Override
@@ -124,7 +125,7 @@ public class BoardBuilderSearchWidget extends AbstractScrollArea {
     public static final class GoalEntry extends ObjectSelectionList.Entry<GoalEntry> {
 
         private final Goal goal;
-        public final String displayName;
+        public final Component displayName;
 
         public GoalEntry(String id) {
             Optional<GoalDataGenerator> gen = GoalRegistry.INSTANCE.getDataGenerator(id);
@@ -133,9 +134,16 @@ public class BoardBuilderSearchWidget extends AbstractScrollArea {
             String data = gen.map(g -> g.generateData(new ArrayList<>(GoalDataGenerator.ALL_DYES))).orElse(GoalDataConstants.DATA_NONE);
             this.goal = GoalRegistry.INSTANCE.newGoal(id, data);
 
-            this.displayName = gen.isEmpty() ? goal.getGoalName() : "[*] " + Arrays.stream(goal.getId().replace("_", " ").toLowerCase().split(" "))
-                    .map(word -> word.isEmpty() ? word : Character.toUpperCase(word.charAt(0)) + word.substring(1))
-                    .collect(Collectors.joining(" "));
+            // TODO - Translation for goal that have data
+            if (gen.isEmpty()) {
+                this.displayName = LockoutTranslation.translatable(LockoutTranslation.KeyType.GOAL, goal.getId().toLowerCase(), goal.getGoalName());
+            } else {
+                var goalWithDataDisplay = Arrays.stream(goal.getId().replace("_", " ").toLowerCase().split(" "))
+                        .map(word -> word.isEmpty() ? word : Character.toUpperCase(word.charAt(0)) + word.substring(1))
+                        .collect(Collectors.joining(" "));
+                this.displayName = Component.literal("[*] ")
+                        .append(LockoutTranslation.translatable(LockoutTranslation.KeyType.GOAL, goal.getId().toLowerCase(), goalWithDataDisplay, "X"));
+            }
         }
 
 
