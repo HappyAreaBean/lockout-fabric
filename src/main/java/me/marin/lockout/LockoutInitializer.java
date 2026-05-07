@@ -20,6 +20,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
@@ -32,11 +33,14 @@ import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.functions.SetPotionFunction;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import static me.marin.lockout.Constants.*;
+import static me.marin.lockout.Constants.MAX_BOARD_SIZE;
+import static me.marin.lockout.Constants.NAMESPACE;
+import static me.marin.lockout.Constants.PLACEHOLDER_PERM_STRING;
 
 public class LockoutInitializer implements ModInitializer {
 
@@ -56,6 +60,16 @@ public class LockoutInitializer implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             {
+                {
+                    var commandNode = Commands.literal("GoalDataGenerate").requires(PERMISSIONS).executes(s -> {
+                        new GoalDataGenerator();
+                        s.getSource().sendSystemMessage(Component.literal("Check console for output."));
+                        return 1;
+                    }).build();
+
+                    dispatcher.getRoot().addChild(commandNode);
+                }
+
                 {
                     // Lockout command
                     var commandNode = Commands.literal("lockout").requires(PERMISSIONS).build();
