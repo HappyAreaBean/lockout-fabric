@@ -7,7 +7,7 @@
     "lockout.builder.clear_board": "清空面板",
     "lockout.misc.close": "關閉",
     "lockout.misc.save": "儲存",
-    "lockout.misc.wins": "%1$s 獲勝",
+    "lockout.misc.wins": "%1$s 獲勝。",
     "lockout.goal.completed": "%1$s 完成了 %2$s",
     "lockout.goal.completed_someone": "有人完成了 %1$s",
     "lockout.color.black": "黑色",
